@@ -9,6 +9,34 @@ import (
 	"time"
 )
 
+func makeCommand(cmdName string, cmdArgs []string) (*exec.Cmd, io.Reader, error) {
+	cmd := exec.Command(cmdName, cmdArgs...) // #nosec
+	cmdStdoutReader, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, nil, err
+	}
+	cmdStderrReader, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, nil, err
+	}
+	cmdReader := io.MultiReader(cmdStdoutReader, cmdStderrReader)
+	return cmd, cmdReader, nil
+}
+
+func runCommand(cmd *exec.Cmd) error {
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	interval, err := time.ParseDuration(os.Args[1])
 	if err != nil {
@@ -20,18 +48,12 @@ func main() {
 
 	lastOutput := time.Now()
 
-	cmd := exec.Command(cmdName, cmdArgs...) // #nosec
-	cmdStdoutReader, err := cmd.StdoutPipe()
+	cmd, cmdReader, err := makeCommand(cmdName, cmdArgs)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		_, _ = fmt.Fprintln(os.Stderr, "Error starting command", err)
 		os.Exit(1)
 	}
-	cmdStderrReader, err := cmd.StderrPipe()
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Error creating StderrPipe for Cmd", err)
-		os.Exit(1)
-	}
-	cmdReader := io.MultiReader(cmdStdoutReader, cmdStderrReader)
+
 	scanner := bufio.NewScanner(cmdReader)
 	go func() {
 		for scanner.Scan() {
@@ -57,17 +79,7 @@ func main() {
 		}
 	}()
 
-	err = cmd.Start()
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
-		os.Exit(1)
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		os.Exit(1)
-	}
+	runCommand(cmd)
 
 	close(quit)
 }
