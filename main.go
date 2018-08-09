@@ -3,30 +3,40 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"time"
 )
 
-// IntervalSec the maximum number of seconds between output.
-var IntervalSec = 9
-
 func main() {
-	cmdName := os.Args[1]
-	cmdArgs := os.Args[2:]
+	interval, err := time.ParseDuration(os.Args[1])
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Error parsing interval", err)
+		os.Exit(1)
+	}
+	cmdName := os.Args[2]
+	cmdArgs := os.Args[3:]
+
 	lastOutput := time.Now()
 
 	cmd := exec.Command(cmdName, cmdArgs...) // #nosec
-	cmdReader, err := cmd.StdoutPipe()
+	cmdStdoutReader, err := cmd.StdoutPipe()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
 		os.Exit(1)
 	}
+	cmdStderrReader, err := cmd.StderrPipe()
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Error creating StderrPipe for Cmd", err)
+		os.Exit(1)
+	}
+	cmdReader := io.MultiReader(cmdStdoutReader, cmdStderrReader)
 	scanner := bufio.NewScanner(cmdReader)
 	go func() {
 		for scanner.Scan() {
-			lastOutput = time.Now()
 			fmt.Println(scanner.Text())
+			lastOutput = time.Now()
 		}
 	}()
 
@@ -36,8 +46,7 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				secondsSinceLastOutput := time.Since(lastOutput) / time.Second
-				if int(secondsSinceLastOutput) >= IntervalSec {
+				if time.Since(lastOutput) >= interval {
 					fmt.Println("♥")
 					lastOutput = time.Now()
 				}
