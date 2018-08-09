@@ -1,0 +1,31 @@
+dist: trusty
+sudo: required
+
+env:
+  global:
+  - PATH="/tmp/ci-tools:$PATH"
+
+cache:
+  directories:
+  - /tmp/ci-tools
+
+language: bash
+
+services:
+- docker
+
+install: curl -sSL https://github.com/goodeggs/travis-utils/raw/master/install-ci-tools.sh | sh -s -- git-crypt
+
+before_script:
+- git-crypt-unlock
+- . platform/secrets/travis.env
+
+script: make test
+
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: make deploy
+  on:
+    branch: master
+
