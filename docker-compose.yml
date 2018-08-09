@@ -6,12 +6,12 @@ services:
     build:
       context: .
       args:
-        GO_IMPORT_PATH: github.com/goodeggs/better_travis_wait
+        GO_IMPORT_PATH: github.com/goodeggs/stdout-heartbeat
     entrypoint: ["fixuid"]
     command: sleep 3600
     user: ${FIXUID:-500}:${FIXGID:-20}
     volumes:
-      - .:/gopath/src/github.com/goodeggs/better_travis_wait
+      - .:/gopath/src/github.com/goodeggs/stdout-heartbeat
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .ci-shell.env

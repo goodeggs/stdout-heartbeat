@@ -29,9 +29,5 @@ ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 WORKDIR /gopath/src/${GO_IMPORT_PATH}
 RUN sudo chown -R docker:docker /gopath
 
-COPY .go-version .dep-version ./
-RUN true \
-  && curl -sSL "https://dl.google.com/go/go$(cat .go-version).linux-amd64.tar.gz" | sudo tar -C /usr/local -xz \
-  && curl -sSL "https://github.com/golang/dep/releases/download/v$(cat .dep-version)/dep-linux-amd64" | sudo dd of=/usr/local/go/bin/dep status=none \
-  && sudo chmod +x /usr/local/go/bin/dep
-
+COPY .go-version ./
+RUN curl -sSL "https://dl.google.com/go/go$(cat .go-version).linux-amd64.tar.gz" | sudo tar -C /usr/local -xz

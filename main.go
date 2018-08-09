@@ -8,17 +8,18 @@ import (
 	"time"
 )
 
-var INTERVAL_SECONDS = 9
+// IntervalSec the maximum number of seconds between output.
+var IntervalSec = 9
 
 func main() {
 	cmdName := os.Args[1]
 	cmdArgs := os.Args[2:]
 	lastOutput := time.Now()
 
-	cmd := exec.Command(cmdName, cmdArgs...)
+	cmd := exec.Command(cmdName, cmdArgs...) // #nosec
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		_, _ = fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
 		os.Exit(1)
 	}
 	scanner := bufio.NewScanner(cmdReader)
@@ -35,8 +36,8 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				secondsSinceLastOutput := time.Now().Sub(lastOutput) / time.Second
-				if int(secondsSinceLastOutput) >= INTERVAL_SECONDS {
+				secondsSinceLastOutput := time.Since(lastOutput) / time.Second
+				if int(secondsSinceLastOutput) >= IntervalSec {
 					fmt.Println("♥")
 					lastOutput = time.Now()
 				}
@@ -49,13 +50,13 @@ func main() {
 
 	err = cmd.Start()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
+		_, _ = fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
 		os.Exit(1)
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
+		_, _ = fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
 		os.Exit(1)
 	}
 
