@@ -1,31 +1,24 @@
 dist: trusty
 sudo: required
-
 env:
   global:
   - PATH="/tmp/ci-tools:$PATH"
-
+  - secure: wUUmdWLeWIISXARSWJ+yQafqQxi+4/a0PxhL8CSPBRLR/i2Rf5VFOiKNaSTA9oHSFNcenup/CFA5Gbbdc87Wsbn7omZmLWiBKSeUU9Sm305jL8yNH37qe98jzbFKLKNvcaaZ/hNX78UbEpEmL1J0tV5bhlQoZhdaxhrdZ0rk4TljEXCeRRoGW3Y0jGFj+/h1JyD2ccslEyFjTVP534JhVTOo5xP/6XltJ48wznFNADxWrxieefUzPkb7l3wTQxNJSb36M0VVTQjFOzFzU9vwOgZRy5yo5ANO/S7KykCLWtmcL9j7sXXmondYS9s14UJHVu59gNJvG7KR1pztiXCj8VUdmThgs+mpBaVxzQbvsgvHEten5t6Sb1rSYNhbUhJpBerr76Pb8i2Od4xrdQmga3CPhLaBs3XX+cDkAzeO4KRWQ2CiuwYjZ4ZVdLEacgTrI/viWh5iHLyC4ckWDlIBwhL00/QZOgIfAHChSM4vIDfP60Q5NrYSpxiCS7OSKrWjmQOCXpEUMUBf1w1V4778KDc0PcIVlE9mm0xpZyuhpl5aUeIhxPvCiSSmLa3v68u00xUEtpyJv2+ERWQm+zeb0jEJ2PZQIV6SvLFAUBOOCdtYFzznr6rkNxg+NpPOhtlRWm//32JwEZj1mgu4vgIoZ7Pnt8vRlyBqGvfg3/9L7zs=
 cache:
   directories:
   - /tmp/ci-tools
-
 language: bash
-
 services:
 - docker
-
-install: curl -sSL https://github.com/goodeggs/travis-utils/raw/master/install-ci-tools.sh | sh -s -- git-crypt
-
+install: curl -sSL https://github.com/goodeggs/travis-utils/raw/master/install-ci-tools.sh
+  | sh -s -- git-crypt
 before_script:
 - git-crypt-unlock
 - . platform/secrets/travis.env
-
 script: make test
-
 deploy:
   skip_cleanup: true
   provider: script
   script: make deploy
   on:
     branch: master
-
