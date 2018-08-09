@@ -29,12 +29,7 @@ func runCommand(cmd *exec.Cmd) error {
 		return err
 	}
 
-	err = cmd.Wait()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Wait()
 }
 
 func main() {
@@ -79,7 +74,11 @@ func main() {
 		}
 	}()
 
-	runCommand(cmd)
+	err = runCommand(cmd)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Error running command", err)
+		os.Exit(1)
+	}
 
 	close(quit)
 }
